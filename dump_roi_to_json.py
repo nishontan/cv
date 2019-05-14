@@ -4,14 +4,21 @@ import imutils
 import time
 import cv2
 import os
+import json
+from src.bounding_box import BoundingBox
+from src.custom_args_parse import str2bool
 
 
 paused_frame = None
 centroids = []
+bounding_boxes = []
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", type=str, help="path to input video file")
+ap.add_argument("-p", "--paused",type=str2bool, nargs='?',
+                        const=True, default="yes", help="Pauses on first frame")
 args = vars(ap.parse_args())
+print(args["paused"])
 
 
 def capture_video_stream():
@@ -29,7 +36,11 @@ def load_one_frame(stream):
     return frame
 
 
-def center_of_rect(x, y, w, h):
+def save_drawn_bounding_boxes():
+    pass
+
+
+def center_of_rect(x, y, w, h): 
     centerX = x + 0.5 * w
     centerY = y + 0.5 * h
     return (int(centerX), int(centerY))
@@ -71,14 +82,21 @@ def main():
 
     cv2.namedWindow("Frame")
     video_stream = capture_video_stream()
-
+  
     while True:
+
         if paused_frame is not None:
             frame = paused_frame
         else:
             frame = load_one_frame(video_stream)
 
         frame = imutils.resize(frame, width=1000)
+        
+        if args["paused"]:
+            pause_on_current_frame(frame)
+            print("pausing")
+
+        
         if frame is None:
             break
 
@@ -93,6 +111,8 @@ def main():
             show_roi_selector(frame)
         if key == ord('c'):
             clear_all_trackers()
+        if key == ord('s'):
+            save_drawn_bounding_boxes()
 
         if key == 27:
             break
