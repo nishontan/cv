@@ -115,7 +115,6 @@ def main():
         else:
             frame = load_one_frame(video_stream)
 
-        
         # Exit if there not video
         if frame is None:
             print("video stream has ended")
