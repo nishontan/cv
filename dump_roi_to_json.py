@@ -11,10 +11,13 @@ from src.bounding_box import BoundingBox
 paused_frame = None
 centroids = []
 bounding_boxes = []
+total_no_of_shown_frames = 0
+paused_at_frame_no = None
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", type=str, help="path to input video file")
-ap.add_argument("-e", "--export", type=str,default='./output.json', help="path to export")
+ap.add_argument("-e", "--export", type=str,
+                default='./output.json', help="path to export")
 ap.add_argument("-p", "--paused", type=str2bool, nargs='?',
                 const=True, default="yes", help="Pauses on first frame")
 
@@ -52,18 +55,21 @@ def show_roi_selector(frame):
     centroids.append(center_of_rect(startX, startY, w, h))
 
     bounding_box_uid = len(bounding_boxes)
-    frame_number = 1  # todo: make this value dynamic
-    bounding_boxes.append(BoundingBox(bounding_box_uid, bb, frame_number))
+    bounding_boxes.append(BoundingBox(bounding_box_uid, bb, paused_at_frame_no))
 
 
 def save_drawn_bounding_boxes():
     json_string = json.dumps([ob.__dict__ for ob in bounding_boxes])
+    print(json_string)
     with open(args['export'], "w") as text_file:
         print(json_string, file=text_file)
 
 
 def pause_on_current_frame(frame):
-    global paused_frame
+    global paused_frame,paused_at_frame_no
+
+    # Storing frame number, when it was paused
+    paused_at_frame_no = total_no_of_shown_frames
     if paused_frame is None:
         paused_frame = frame
     else:
@@ -98,7 +104,7 @@ def draw_bounding_boxes(frame):
 
 
 def main():
-    global paused_frame
+    global paused_frame,total_no_of_shown_frames
 
     cv2.namedWindow("Frame")
     video_stream = capture_video_stream()
@@ -109,19 +115,21 @@ def main():
         else:
             frame = load_one_frame(video_stream)
 
+        
         # Exit if there not video
         if frame is None:
             print("video stream has ended")
             break
 
         frame = imutils.resize(frame, width=1000)
+        total_no_of_shown_frames += 1
 
         if args["paused"] and paused_frame is None:
             pause_on_current_frame(frame)
             continue
 
         draw_bounding_boxes(frame)
-
+     
         cv2.imshow("Frame", frame)
         key = cv2.waitKey(1) & 0xFF
 

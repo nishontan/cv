@@ -1,4 +1,4 @@
-from .serializer import Serializable
+
 import json
 
 
