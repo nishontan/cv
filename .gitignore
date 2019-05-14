@@ -127,5 +127,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Videos
+videos/
+
+# Visual studio code cache
+.vscode/
+
 # End of https://www.gitignore.io/api/python
 
